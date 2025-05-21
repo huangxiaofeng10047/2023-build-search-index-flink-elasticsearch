@@ -1,2 +1,5 @@
-kafka_2.13-2.8.0/*
+kafka_2.13-3.7.2/*
 plugins/*
+*.tgz
+*.tar.gz
+

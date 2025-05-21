@@ -15,7 +15,7 @@ def on_error(error):
     print(f"An error occurred while publishing the message. {error}")
 
 producer = KafkaProducer(
-    bootstrap_servers = "localhost:9092",
+    bootstrap_servers = "localhost:19092",
     value_serializer=lambda m: json.dumps(m).encode('ascii')
 )
 

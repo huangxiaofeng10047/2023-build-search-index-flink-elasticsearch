@@ -1,4 +1,7 @@
 version: '3.7'
+networks:
+   redpanda-quickstart-one-broker_redpanda_network:
+    external: true
 services:
   # Flink cluster
   jobmanager:
@@ -9,10 +12,17 @@ services:
     ports:
       - 8081:8081
     command: jobmanager
+    deploy:
+      resources:
+        limits:
+          memory: 1GB  # 限制内存使用为 1GB
+          cpus: '0.5'  # 限制 CPU 使用为 0.5 核    
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager        
+        jobmanager.rpc.address: jobmanager    
+    networks:
+      - redpanda-quickstart-one-broker_redpanda_network            
 
   taskmanager:
     container_name: taskmanager
@@ -22,12 +32,19 @@ services:
     depends_on:
       - jobmanager
     command: taskmanager
+    deploy:
+      resources:
+        limits:
+          memory: 1GB  # 限制内存使用为 1GB
+          cpus: '0.5'  # 限制 CPU 使用为 0.5 核        
     scale: 1
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 20
+    networks:
+      - redpanda-quickstart-one-broker_redpanda_network     
        
   sql-client:
     container_name: sql-client
@@ -48,6 +65,8 @@ services:
         rest.address: jobmanager
     volumes:
       - ./data/sql:/etc/sql
+    networks:
+      - redpanda-quickstart-one-broker_redpanda_network     
 
   # Elasticsearch
   elastic-1:
@@ -59,3 +78,5 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
+    networks:
+      - redpanda-quickstart-one-broker_redpanda_network    
