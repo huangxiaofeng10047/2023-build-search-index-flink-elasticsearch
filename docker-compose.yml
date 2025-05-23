@@ -1,51 +1,57 @@
-version: '3.7'
+version: "3.7"
 networks:
-   redpanda-quickstart-one-broker_redpanda_network:
+  redpanda-quickstart-one-broker_redpanda_network:
     external: true
 services:
   # Flink cluster
   jobmanager:
     container_name: jobmanager
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: scala2.13-flink:v1.18.1
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
     ports:
       - 8081:8081
     command: jobmanager
     deploy:
       resources:
         limits:
-          memory: 1GB  # 限制内存使用为 1GB
-          cpus: '0.5'  # 限制 CPU 使用为 0.5 核    
+          memory: 1GB # 限制内存使用为 1GB
+          cpus: "0.5" # 限制 CPU 使用为 0.5 核
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager    
+        jobmanager.rpc.address: jobmanager
+    volumes:
+      - $PWD/flink-conf/job/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml        
     networks:
-      - redpanda-quickstart-one-broker_redpanda_network            
+      - redpanda-quickstart-one-broker_redpanda_network
 
   taskmanager:
     container_name: taskmanager
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: scala2.13-flink:v1.18.1
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
     depends_on:
       - jobmanager
     command: taskmanager
     deploy:
       resources:
         limits:
-          memory: 1GB  # 限制内存使用为 1GB
-          cpus: '0.5'  # 限制 CPU 使用为 0.5 核        
+          memory: 1GB # 限制内存使用为 1GB
+          cpus: "0.5" # 限制 CPU 使用为 0.5 核
     scale: 1
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 20
+        taskmanager.numberOfTaskSlots: 10
+    volumes:
+      - $PWD/flink-conf/task/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml            
     networks:
-      - redpanda-quickstart-one-broker_redpanda_network     
-       
+      - redpanda-quickstart-one-broker_redpanda_network
+
   sql-client:
     container_name: sql-client
     build:
@@ -66,7 +72,7 @@ services:
     volumes:
       - ./data/sql:/etc/sql
     networks:
-      - redpanda-quickstart-one-broker_redpanda_network     
+      - redpanda-quickstart-one-broker_redpanda_network
 
   # Elasticsearch
   elastic-1:
@@ -80,14 +86,15 @@ services:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - TZ=Asia/Shanghai
     ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-            nofile:
-                soft: 65535
-                hard: 65535      
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65535
+        hard: 65535
     ports:
       - 9200:9200
       - 9300:9300
     networks:
-      - redpanda-quickstart-one-broker_redpanda_network    
+      - redpanda-quickstart-one-broker_redpanda_network
+
